@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Notes App — Animated</title>
+  <style>
+    :root{
+      --bg: #f6f7fb;
+      --card: #fff;
+      --accent: #4caf50;
+      --muted: #6b7280;
+    }
+    *{box-sizing:border-box}
+    body {
+      font-family: Inter, system-ui, Arial, sans-serif;
+      background: linear-gradient(180deg,#f6f7fb 0%, #eef2f7 100%);
+      margin: 0;
+      padding: 28px;
+      -webkit-font-smoothing:antialiased;
+      color: #111827;
+    }
+
+    .header {
+      display: flex;
+      gap: 12px;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .brand{
+      display:flex;align-items:center;gap:10px
+    }
+    .logo{
+      width:44px;height:44px;border-radius:10px;background:var(--accent);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;box-shadow:0 6px 18px rgba(76,175,80,0.18);
+    }
+    h1{font-size:18px;margin:0}
+
+    .controls{display:flex;gap:10px;align-items:center}
+
+    .search {
+      padding: 10px 12px;
+      width: 260px;
+      border-radius: 10px;
+      border: 1px solid rgba(16,24,40,0.06);
+      background: white;
+      outline: none;
+      transition: box-shadow .18s ease, transform .12s ease;
+    }
+    .search:focus{box-shadow:0 6px 20px rgba(16,24,40,0.08);transform:translateY(-2px)}
+
+    .add-btn {
+      padding: 10px 18px;
+      background: var(--accent);
+      color: white;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 8px 22px rgba(76,175,80,0.18);
+      transform-origin:center;
+      transition: transform .12s ease, box-shadow .12s ease;
+    }
+    .add-btn:active{transform:scale(.98)}
+
+    .notes-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 18px;
+      margin-top:10px;
+    }
+
+    .note {
+      background: var(--card);
+      padding: 14px;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(16,24,40,0.06);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transform-origin: center;
+      transition: transform .18s ease, box-shadow .18s ease, opacity .18s ease;
+    }
+    .note:hover{transform:translateY(-6px) scale(1.01);box-shadow:0 12px 30px rgba(16,24,40,0.09)}
+
+    .note .text{white-space:pre-wrap;word-break:break-word;color:#0f172a}
+    .note small{color:var(--muted)}
+
+    .actions{display:flex;gap:8px;margin-top:6px}
+    .note button {
+      padding: 6px 10px;
+      border: none;
+      cursor: pointer;
+      border-radius: 8px;
+      font-weight:600;
+      font-size:13px;
+    }
+    .edit-btn { background: #fff5d6; color:#92400e; box-shadow:inset 0 -2px 0 rgba(0,0,0,0.03)}
+    .delete-btn { background: #ffecec; color:#9b1c1c }
+
+    /* appear animation for notes (staggered via inline style) */
+    @keyframes appearUp {
+      from {opacity:0; transform: translateY(12px) scale(.98)}
+      to   {opacity:1; transform: translateY(0) scale(1)}
+    }
+
+    /* modal styles */
+    .modal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(2,6,23,0.45);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      z-index: 100;
+    }
+    .modal.show{display:flex}
+    .modal-box {
+      background: #fff;
+      padding: 18px;
+      border-radius: 12px;
+      width: min(560px, 100%);
+      max-width:640px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 0 18px 50px rgba(2,6,23,0.2);
+      transform-origin: center top;
+      animation: modalIn .22s cubic-bezier(.2,.9,.2,1);
+    }
+    @keyframes modalIn{
+      from{opacity:0; transform: translateY(-10px) scale(.98)}
+      to{opacity:1; transform: translateY(0) scale(1)}
+    }
+    textarea {
+      width: 100%;
+      min-height: 140px;
+      padding: 12px;
+      border-radius: 10px;
+      border:1px solid rgba(15,23,42,0.06);
+      resize:vertical;
+      font-family:inherit;font-size:14px;line-height:1.4
+    }
+
+    .modal-actions{display:flex;gap:10px;justify-content:flex-end}
+    .btn-primary{background:var(--accent);color:white;padding:10px 16px;border-radius:10px;border:none;cursor:pointer}
+    .btn-ghost{background:transparent;padding:10px 12px;border-radius:10px;border:1px solid rgba(15,23,42,0.06);cursor:pointer}
+
+    /* delete animation */
+    .note.removing{animation:shrinkFade .22s forwards}
+    @keyframes shrinkFade{to{opacity:0; transform:scale(.92) translateY(6px);height:0;margin:0;padding:0}}
+
+    /* small responsive tweaks */
+    @media (max-width:560px){
+      .controls{flex-direction:column;align-items:stretch}
+      .search{width:100%}
+      .notes-container{grid-template-columns:repeat(1,1fr)}
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="brand">
+      <div class="logo">N</div>
+      <div>
+        <h1>Notes App</h1>
+        <div style="font-size:12px;color:var(--muted)">Simple, fast — now animated</div>
+      </div>
+    </div>
+    <div class="controls">
+      <input type="text" id="search" class="search" placeholder="Search notes..." />
+      <button class="add-btn" id="addNoteBtn">+ Add Note</button>
+    </div>
+  </div>
+
+  <div class="notes-container" id="notesContainer"></div>
+
+  <div class="modal" id="modal">
+    <div class="modal-box">
+      <textarea id="modalText" placeholder="Write your note here..."></textarea>
+      <div class="modal-actions">
+        <button class="btn-ghost" id="closeModal">Cancel</button>
+        <button class="btn-primary" id="saveEdit">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // data & elements
+    let notes = JSON.parse(localStorage.getItem("notes")) || [];
+    let editId = null;
+
+    const notesContainer = document.getElementById("notesContainer");
+    const modal = document.getElementById("modal");
+    const modalText = document.getElementById("modalText");
+
+    function saveNotes() {
+      localStorage.setItem("notes", JSON.stringify(notes));
+    }
+
+    // Render notes with small appear animation (staggered)
+    function renderNotes(filter = "") {
+      notesContainer.innerHTML = "";
+      const filtered = notes.filter(n => n.text.toLowerCase().includes(filter.toLowerCase()));
+      filtered.forEach((note, i) => {
+        const div = document.createElement("div");
+        div.className = "note";
+        // staggered appear
+        div.style.animation = `appearUp .28s cubic-bezier(.2,.9,.2,1) forwards`;
+        div.style.animationDelay = `${i * 40}ms`;
+
+        div.innerHTML = `
+          <div class="text">${escapeHtml(note.text)}</div>
+          <small>${note.date}</small>
+          <div class="actions">
+            <button class="edit-btn" data-id="${note.id}">Edit</button>
+            <button class="delete-btn" data-id="${note.id}">Delete</button>
+          </div>
+        `;
+
+        // attach event listeners instead of inline onclick
+        const editBtn = div.querySelector('.edit-btn');
+        const delBtn = div.querySelector('.delete-btn');
+        editBtn.addEventListener('click', () => openEditModal(note.id));
+        delBtn.addEventListener('click', () => deleteNoteWithAnim(note.id, div));
+
+        notesContainer.appendChild(div);
+      });
+    }
+
+    // escape to avoid HTML injection
+    function escapeHtml(str){
+      return String(str)
+        .replaceAll('&','&amp;')
+        .replaceAll('<','&lt;')
+        .replaceAll('>','&gt;')
+        .replaceAll('"','&quot;')
+        .replaceAll("'",'&#39;');
+    }
+
+    // add note
+    document.getElementById("addNoteBtn").onclick = () => {
+      const newNote = {
+        id: Date.now(),
+        text: "New Note...",
+        date: new Date().toLocaleDateString()
+      };
+      notes.unshift(newNote); // add to top
+      saveNotes();
+      renderNotes(document.getElementById('search').value);
+      // quick bounce on add button
+      const btn = document.getElementById('addNoteBtn');
+      btn.style.transform = 'scale(0.98)';
+      setTimeout(()=>btn.style.transform='scale(1)',120);
+    };
+
+    // open edit modal
+    function openEditModal(id){
+      editId = id;
+      const note = notes.find(n => n.id === id);
+      modalText.value = note.text;
+      modal.classList.add('show');
+      // focus textarea after small delay to allow animation
+      setTimeout(()=>modalText.focus(),80);
+    }
+
+    // save edit
+    document.getElementById("saveEdit").onclick = () => {
+      const note = notes.find(n => n.id === editId);
+      if(note){
+        note.text = modalText.value;
+        saveNotes();
+        renderNotes(document.getElementById('search').value);
+      }
+      closeModal();
+    };
+
+    // delete with animation, then actually remove
+    function deleteNoteWithAnim(id, element){
+      element.classList.add('removing');
+      // after animation, remove from array
+      setTimeout(()=>{
+        notes = notes.filter(n => n.id !== id);
+        saveNotes();
+        renderNotes(document.getElementById('search').value);
+      }, 220);
+    }
+
+    // close modal
+    function closeModal(){
+      modal.classList.remove('show');
+    }
+
+    document.getElementById("closeModal").onclick = closeModal;
+
+    // search filter
+    document.getElementById("search").addEventListener("input", (e) => {
+      renderNotes(e.target.value);
+    });
+
+    // initial render
+    renderNotes();
+  </script>
+</body>
+</html>
+
+</body>
+</html>
+    
+</body>
+</html>
